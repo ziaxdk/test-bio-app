@@ -2,7 +2,7 @@
   <div id="app">
     <div style="position: absolute; left: 0; right: 0; top: 50px;">
         <transition :css="false" @enter="eItem" @leave="lItem">
-            <div class="item" v-if="taken && taken.state !== 'Complete'">
+            <div class="item" v-if="taken && taken.userId && taken.state !== 'Complete'">
                 <div v-text="`${taken.text} - ${taken.userId}`" />
             </div>
         </transition>
@@ -48,6 +48,7 @@ export default {
   data: () => ({
     list: [ gen(), gen(), gen(), gen() ],
     takeId: 3,
+    taken: null,
 
     takenPos: 0,
     animTimeInSecs: 0.3,
@@ -57,9 +58,6 @@ export default {
   }),
 
   computed: {
-      taken () {
-          return this.list.find(i => i.userId !== null)
-      },
       sorted () {
           return this.list.filter(i => i.userId === null && (i.state === null || i.state !== 'Complete'))
       }
@@ -70,14 +68,14 @@ export default {
           this.list.push(gen())
       },
       take () {
-          this.list[this.takeId - 1].userId = 1
-          this.list[this.takeId - 1].state = 'OnTheWay'
+          this.taken = this.list.splice(this.takeId - 1, 1)[0]
+          this.taken.userId = 1
       },
       untake () {
           this.EnterListNew = false
           this.LeaveItemComplete = false
-          this.list[this.takeId - 1].userId = null
-          this.list[this.takeId - 1].state = null
+          this.taken.userId = null
+          this.list.splice(this.takeId - 1, 0, this.taken)
       },
       complete () {
           this.LeaveItemComplete = true
@@ -119,7 +117,7 @@ export default {
           }
       },
       lList (el, onComplete) {
-          new TimelineLite({ onComplete }).to(el, this.animTimeInSecs, { height: 0 }) // take
+        new TimelineLite({ onComplete }).to(el, this.animTimeInSecs, { height: 0 })
       }
   }
 }
